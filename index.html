@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Scar</title>
   
   <!-- Dependencias externas -->
@@ -22,10 +22,11 @@
     * {
       box-sizing: border-box;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* FONDO Y GRILLA CYBERPUNK ORIGINAL */
-    body {
+    html, body {
       background-color: #08090c;
       color: #e2e8f0;
       font-family: 'Share Tech Mono', monospace;
@@ -92,7 +93,7 @@
       will-change: transform, opacity;
     }
 
-    .tech-card:hover {
+    .tech-card:hover, .tech-card:active {
       box-shadow: 0 0 25px rgba(255, 255, 255, 0.6), inset 0 0 20px rgba(226, 232, 240, 0.2);
       border-color: #ffffff;
     }
@@ -156,7 +157,7 @@
       justify-content: center;
     }
 
-    .core-trigger:hover {
+    .core-trigger:hover, .core-trigger:active {
       transform: translate(-50%, -50%) scale(1.08);
       box-shadow: 0 0 45px rgba(255, 255, 255, 0.7);
       background: rgba(226, 232, 240, 0.15);
@@ -191,7 +192,7 @@
       transition: filter 0.5s ease, transform 0.5s ease;
     }
 
-    .tech-card:hover .char-img {
+    .tech-card:hover .char-img, .tech-card:active .char-img {
       filter: grayscale(20%) contrast(110%) brightness(100%);
       transform: scale(1.03);
     }
@@ -211,11 +212,12 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.8);
       z-index: 35;
       transition: opacity 1.2s ease, transform 1.2s ease;
+      white-space: nowrap;
     }
 
-    /* VENTANAS INTERNAS: CUIDADOSAMENTE ESTILIZADAS EN VISION OS (GLASSMORPHISM) */
+    /* VENTANAS INTERNAS VISION OS (GLASSMORPHISM) */
     
-    /* 1. DIÁLOGOS ROTATIVOS (ARRIBA DERECHA) */
+    /* 1. DIÁLOGOS ROTATIVOS */
     #dialog-container {
       position: absolute;
       top: 50px;
@@ -230,10 +232,10 @@
     }
 
     .dialog-card {
-      background: rgba(28, 32, 45, 0.65);
+      background: rgba(28, 32, 45, 0.75);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 20px;
       padding: 10px 14px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -249,12 +251,13 @@
       transform: translateY(0) scale(1);
     }
 
-    /* 2. VENTANA EMERGENTE PERFIL (MODAL COMPACTA Y PEQUEÑA) */
+    /* 2. VENTANA EMERGENTE PERFIL (MODAL COMPACTA VISION OS) */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(5, 6, 9, 0.7);
+      background: rgba(5, 6, 9, 0.75);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 100;
       display: flex;
       align-items: center;
@@ -263,6 +266,7 @@
       pointer-events: none;
       transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
       font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 16px;
     }
 
     .modal-backdrop.open {
@@ -271,12 +275,14 @@
     }
 
     .modal-box {
-      width: 520px; /* Tamaño reducido y más compacto */
-      max-width: 85vw;
-      background: rgba(24, 28, 38, 0.75);
+      width: 520px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: rgba(24, 28, 38, 0.85);
       backdrop-filter: blur(28px) saturate(200%);
       -webkit-backdrop-filter: blur(28px) saturate(200%);
-      border: 1px solid rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 28px;
       box-shadow: 
         0 30px 80px rgba(0, 0, 0, 0.65),
@@ -292,12 +298,13 @@
 
     /* NOTIFICACIÓN TOAST */
     #toast-notification {
-      position: absolute;
-      top: 25px;
+      position: fixed;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
-      background: rgba(28, 32, 45, 0.85);
+      background: rgba(28, 32, 45, 0.9);
       backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 999px;
       padding: 8px 20px;
@@ -309,11 +316,33 @@
       opacity: 0;
       pointer-events: none;
       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 90vw;
+      text-align: center;
     }
 
     #toast-notification.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
+    }
+
+    /* AJUSTES RESPONSIVOS PARA MOVILES */
+    @media (max-width: 768px) {
+      #dialog-container {
+        top: 20px;
+        right: 20px;
+        width: 270px;
+      }
+      .modal-box {
+        border-radius: 24px;
+        padding: 16px;
+      }
+      .subtitle-bar {
+        font-size: 0.75rem;
+        padding: 4px 16px;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   </style>
 </head>
@@ -324,7 +353,7 @@
 
   <!-- TOAST NOTIFICATION ESTILO VISION OS -->
   <div id="toast-notification" class="flex items-center space-x-2.5">
-    <div class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+    <div class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
       <i class="fa-solid fa-volume-high text-[10px] text-white"></i>
     </div>
     <span id="toast-text" class="font-medium">Reproduciendo registro de voz encriptado...</span>
@@ -499,6 +528,7 @@
   </div>
 
   <script>
+    // Escalado automático responsivo que calcula la proporción ideal para cualquier pantalla móvil o de escritorio
     function scaleStage() {
       const container = document.getElementById('stage-container');
       const windowWidth = window.innerWidth;
@@ -506,12 +536,15 @@
       
       const scaleX = windowWidth / 1280;
       const scaleY = windowHeight / 720;
-      const scale = Math.min(scaleX, scaleY) * 0.94; 
+      
+      // Mantiene la proporción ajustando según el margen disponible
+      const scale = Math.min(scaleX, scaleY) * 0.95; 
       
       container.style.transform = `scale(${scale})`;
     }
 
     window.addEventListener('resize', scaleStage);
+    window.addEventListener('orientationchange', scaleStage);
     window.addEventListener('DOMContentLoaded', scaleStage);
 
     const agents = [
