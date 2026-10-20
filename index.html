@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scar</title>
+  
+  <!-- Dependencias externas -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Share+Tech+Mono&family=Teko:wght@600;700&display=swap');
+
+    :root {
+      --light-gray: #e2e8f0;
+      --gray-glow: rgba(226, 232, 240, 0.35);
+      --card-bg: rgba(20, 22, 28, 0.88);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    /* FONDO Y GRILLA CYBERPUNK ORIGINAL */
+    body {
+      background-color: #08090c;
+      color: #e2e8f0;
+      font-family: 'Share Tech Mono', monospace;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(226, 232, 240, 0.1) 0%, transparent 70%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    #stage-container {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      background: transparent;
+      overflow: visible;
+      transform-origin: center center;
+      flex-shrink: 0;
+    }
+
+    .topo-bg {
+      position: absolute;
+      inset: -500px;
+      opacity: 0.2;
+      background-image: 
+        repeating-radial-gradient(circle at 75% 60%, transparent 0, transparent 20px, rgba(255,255,255,0.03) 21px, transparent 22px),
+        repeating-radial-gradient(circle at 25% 30%, transparent 0, transparent 30px, rgba(255,255,255,0.02) 31px, transparent 32px);
+      pointer-events: none;
+    }
+
+    .bg-watermark {
+      position: absolute;
+      font-family: 'Teko', sans-serif;
+      font-size: 16rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.025);
+      line-height: 0.8;
+      pointer-events: none;
+      letter-spacing: 5px;
+    }
+
+    /* TARJETAS EXTERNAS: ESTILO CYBERPUNK ORIGINAL */
+    .tech-card {
+      position: absolute;
+      border: 2px solid var(--light-gray);
+      background: var(--card-bg);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 15px var(--gray-glow), inset 0 0 15px rgba(0,0,0,0.8);
+      cursor: pointer;
+      transition: 
+        transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+      will-change: transform, opacity;
+    }
+
+    .tech-card:hover {
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.6), inset 0 0 20px rgba(226, 232, 240, 0.2);
+      border-color: #ffffff;
+    }
+
+    .profile-tag {
+      position: absolute;
+      background: var(--light-gray);
+      color: #08090c;
+      font-weight: bold;
+      font-family: 'Teko', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      padding: 0 8px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .tech-card::before, .tech-card::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--light-gray);
+      pointer-events: none;
+    }
+    .tech-card::before { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+    .tech-card::after { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0.4;
+    }
+
+    .core-trigger {
+      position: absolute;
+      top: 360px;
+      left: 640px;
+      transform: translate(-50%, -50%);
+      width: 140px;
+      height: 140px;
+      border: 2px solid var(--light-gray);
+      background: rgba(18, 20, 26, 0.95);
+      cursor: pointer;
+      z-index: 40;
+      box-shadow: 0 0 25px var(--gray-glow);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .core-trigger:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+      box-shadow: 0 0 45px rgba(255, 255, 255, 0.7);
+      background: rgba(226, 232, 240, 0.15);
+    }
+
+    .core-trigger.active {
+      border-color: #ffffff;
+      box-shadow: 0 0 55px rgba(226, 232, 240, 0.9);
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.8; }
+      50% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.8; }
+    }
+
+    .pulse-hud {
+      animation: pulse-ring 3s infinite ease-in-out;
+    }
+
+    .card-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translate(var(--start-x), var(--start-y)) scale(0.1) !important;
+    }
+
+    .char-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(130%) brightness(85%);
+      transition: filter 0.5s ease, transform 0.5s ease;
+    }
+
+    .tech-card:hover .char-img {
+      filter: grayscale(20%) contrast(110%) brightness(100%);
+      transform: scale(1.03);
+    }
+
+    .subtitle-bar {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 12, 16, 0.85);
+      border-left: 3px solid var(--light-gray);
+      border-right: 3px solid var(--light-gray);
+      padding: 6px 24px;
+      font-size: 0.95rem;
+      letter-spacing: 2px;
+      color: #cbd5e1;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+      z-index: 35;
+      transition: opacity 1.2s ease, transform 1.2s ease;
+    }
+
+    /* VENTANAS INTERNAS: CUIDADOSAMENTE ESTILIZADAS EN VISION OS (GLASSMORPHISM) */
+    
+    /* 1. DIÁLOGOS ROTATIVOS (ARRIBA DERECHA) */
+    #dialog-container {
+      position: absolute;
+      top: 50px;
+      right: 40px;
+      width: 310px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 50;
+      pointer-events: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .dialog-card {
+      background: rgba(28, 32, 45, 0.65);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 10px 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      color: #f1f5f9;
+      opacity: 0;
+      transform: translateY(25px) scale(0.92);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+    }
+
+    .dialog-card.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* 2. VENTANA EMERGENTE PERFIL (MODAL COMPACTA Y PEQUEÑA) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 6, 9, 0.7);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      width: 520px; /* Tamaño reducido y más compacto */
+      max-width: 85vw;
+      background: rgba(24, 28, 38, 0.75);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 28px;
+      box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      transform: scale(0.9) translateY(15px);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .modal-backdrop.open .modal-box {
+      transform: scale(1) translateY(0);
+    }
+
+    /* NOTIFICACIÓN TOAST */
+    #toast-notification {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(28, 32, 45, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #ffffff;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      z-index: 120;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #toast-notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- EFECTO CRT GLOBAL -->
+  <div class="scanlines"></div>
+
+  <!-- TOAST NOTIFICATION ESTILO VISION OS -->
+  <div id="toast-notification" class="flex items-center space-x-2.5">
+    <div class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+      <i class="fa-solid fa-volume-high text-[10px] text-white"></i>
+    </div>
+    <span id="toast-text" class="font-medium">Reproduciendo registro de voz encriptado...</span>
+  </div>
+
+  <!-- ESCENARIO DE INTERFAZ CIBERNÉTICA -->
+  <div id="stage-container">
+    
+    <div class="topo-bg"></div>
+
+    <!-- Marcas de agua integradas -->
+    <div class="bg-watermark" style="top: -20px; left: 30px;">17</div>
+    <div class="bg-watermark" style="bottom: -50px; left: 30px;">XX</div>
+    <div class="bg-watermark" style="top: 10px; right: 40px; font-size: 10rem;">HEADACHE</div>
+
+    <!-- Encabezado N.E.P.S. -->
+    <div class="absolute left-10 top-12 flex items-center space-x-3 opacity-80 pointer-events-none">
+      <span class="text-xs tracking-widest text-slate-300 font-bold">// SYSTEM: ACTIVE</span>
+    </div>
+
+    <div class="absolute left-10 top-44 pointer-events-none">
+      <div class="text-xs text-gray-500 tracking-widest">// TARGET ID ///</div>
+      <div class="font-bold text-4xl text-white tracking-wider" style="font-family: 'Teko', sans-serif;">SCAR.</div>
+      <div class="text-xs text-slate-300 tracking-widest -mt-1">CRIMINAL INVESTIGATION</div>
+      <div class="mt-4 border-l-2 border-slate-300 pl-2 text-xs text-gray-400 max-w-[150px]">
+        PUBLIC SECURITY DATABASE / DECRYPTION MODE
+      </div>
+    </div>
+
+    <div class="absolute top-4 left-6 text-xs text-gray-400 flex items-center space-x-2">
+      <span class="font-bold text-white text-sm">头痛</span>
+      <span class="text-slate-300 text-lg">headache</span>
+    </div>
+    <div class="absolute top-4 right-6 text-xs text-gray-400 flex items-center space-x-2">
+      <span class="font-bold text-white text-sm">头痛</span>
+      <span class="text-slate-300 text-lg">headache</span>
+    </div>
+
+    <!-- DIÁLOGOS FLOTANTES INTERNOS VISION OS (PARTE SUPERIOR DERECHA) -->
+    <div id="dialog-container">
+      <div id="dialog-slot-1" class="dialog-card"></div>
+      <div id="dialog-slot-2" class="dialog-card"></div>
+    </div>
+
+    <!-- 1. TARJETA SUPERIOR IZQUIERDA -->
+    <div id="card-1" 
+         class="tech-card card-hidden" 
+         style="top: 80px; left: 240px; width: 290px; height: 160px; --start-x: 330px; --start-y: 210px;"
+         onclick="openProfile(0)">
+      <div class="profile-tag" style="top: 0; right: 0; bottom: 0;">PROFILE.</div>
+      <div class="w-full h-full overflow-hidden p-1 pr-7">
+        <img src="https://media.discordapp.net/attachments/814975469865926699/1561909064680874085/IMG_20261019_220331.jpg?ex=6ad810ab&is=6ad6bf2b&hm=42d45d442d9f972ab824dfc3e59f009bf3fb4a288566e41e9866f03b7d43176d&=&format=webp&width=1280&height=960" class="char-img" alt="Zhu Yuan">
+      </div>
+      <div class="absolute bottom-1 left-2 text-[10px] text-slate-200 font-bold bg-black/80 px-1">
+        FILE // 001 - SCAR
+      </div>
+    </div>
+
+    <!-- 2. TARJETA INFERIOR IZQUIERDA -->
+    <div id="card-2" 
+         class="tech-card card-hidden" 
+         style="top: 410px; left: 195px; width: 340px; height: 210px; --start-x: 375px; --start-y: -120px;"
+         onclick="openProfile(1)">
+      <div class="profile-tag" style="top: 0; right: 0; bottom: 0;">PROFILE.</div>
+      <div class="w-full h-full overflow-hidden p-1 pr-7">
+        <img src="https://i.postimg.cc/pdssj78C/b.png" class="char-img" alt="Qingyi">
+      </div>
+      <div class="absolute top-2 left-2 text-[10px] text-slate-200 font-bold bg-black/80 px-1 border-l border-slate-300">
+        FILE // 002 - NYX
+      </div>
+    </div>
+
+    <!-- 3. TARJETA INFERIOR DERECHA -->
+    <div id="card-3" 
+         class="tech-card card-hidden" 
+         style="top: 420px; left: 820px; width: 280px; height: 170px; --start-x: -250px; --start-y: -130px;"
+         onclick="openProfile(2)">
+      <div class="profile-tag" style="top: 0; left: 0; bottom: 0;">PROFILE.</div>
+      <div class="w-full h-full overflow-hidden p-1 pl-7">
+        <img src="https://i.postimg.cc/W3nLDp27/image.png" class="char-img" alt="Seth Lowell">
+      </div>
+      <div class="absolute top-2 right-2 text-[10px] text-slate-200 font-bold bg-black/80 px-1">
+        FILE // 003 - KORE
+      </div>
+    </div>
+
+    <!-- CUADRO GREY MOCKINGBIRD -->
+    <div id="card-gray" 
+         class="absolute border border-slate-400 bg-slate-900/40 card-hidden"
+         style="top: 250px; left: 730px; width: 140px; height: 140px; --start-x: -160px; --start-y: 40px; transition: all 1.4s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div class="w-full h-full flex items-center justify-center p-4">
+        <i class="fa-solid fa-dove text-5xl text-slate-300 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"></i>
+      </div>
+      <div class="absolute bottom-1 right-1 text-[9px] text-slate-400">STATUS: LOCKED</div>
+    </div>
+
+    <!-- BOTÓN CENTRAL DESENCRIPTADOR -->
+    <div id="core-btn" class="core-trigger pulse-hud" onclick="toggleHUD()">
+      <div class="absolute -inset-4 border border-slate-300/30 rounded-full pointer-events-none"></div>
+      <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-slate-300 tracking-widest">DECRYPT</div>
+      <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 tracking-widest whitespace-nowrap" id="core-status">[CLICK TO OPEN]</div>
+      
+      <div class="text-center">
+        <div class="w-16 h-16 rounded-full border border-slate-300/60 flex items-center justify-center mx-auto mb-1 bg-black/50">
+          <i class="fa-solid fa-shield-halved text-2xl text-slate-200"></i>
+        </div>
+        <div class="text-[9px] text-gray-300 font-bold tracking-wider">MOCKINGBIRD</div>
+      </div>
+    </div>
+
+    <!-- RETÍCULAS CENTRALES -->
+    <svg class="absolute inset-0 w-full h-full pointer-events-none z-20">
+      <circle cx="640" cy="360" r="120" fill="none" stroke="rgba(226,232,240,0.25)" stroke-width="1" stroke-dasharray="4 4" />
+      <line x1="640" y1="0" x2="640" y2="720" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+      <line x1="0" y1="360" x2="1280" y2="360" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+    </svg>
+
+    <!-- BANNER SUBTÍTULO -->
+    <div id="subtitle" class="subtitle-bar opacity-0">
+      <span class="text-slate-200 font-bold mr-2">SUBTITLE //</span>
+      "I've already died 23 different ways in my sleep...." (我在睡梦中已经以23种不同的方式死过一遍了)
+    </div>
+
+  </div>
+
+  <!-- MODAL DE INFORMACIÓN ESTILO VISION OS COMPACTA -->
+  <div id="modal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-box p-5" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center pb-3 mb-3 border-b border-white/10">
+        <div>
+          <div class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">// DOSSIER PUBLIC SECURITY</div>
+          <h2 id="modal-title" class="text-xl font-bold text-white tracking-wide mt-0.5">AGENT NAME</h2>
+        </div>
+        <button onclick="closeModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-slate-300 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div class="h-44 overflow-hidden rounded-2xl border border-white/15 relative bg-black/50">
+          <img id="modal-img" src="" class="w-full h-full object-cover" alt="Agent">
+          <div class="absolute bottom-1.5 left-1.5 right-1.5 bg-black/60 backdrop-blur-md rounded-xl text-[9px] text-slate-200 p-1.5 text-center border border-white/10 font-semibold">
+            CLEARANCE LEVEL: ALPHA
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between space-y-2 text-xs">
+          <div class="bg-white/5 p-2.5 rounded-xl border border-white/10">
+            <span class="text-slate-400 text-[10px] block mb-0.5 font-medium">FACCIÓN:</span>
+            <span class="text-white font-semibold">N.E.P.S. (Public Security)</span>
+          </div>
+          
+          <div class="bg-white/5 p-2.5 rounded-xl border border-white/10 flex-1">
+            <span class="text-slate-400 text-[10px] block mb-0.5 font-medium">DESCRIPCIÓN DE ARCHIVO:</span>
+            <p id="modal-desc" class="text-slate-300 text-[11px] leading-snug">
+              Información clasificada del oficial a cargo de las investigaciones criminales del Sector 9.
+            </p>
+          </div>
+
+          <button onclick="playVoiceLog()" class="w-full py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white font-semibold text-[11px] tracking-wider transition flex items-center justify-center space-x-2 shadow-md">
+            <i class="fa-solid fa-volume-high text-xs"></i>
+            <span>REPRODUCIR REGISTRO</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-2.5 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400 font-medium">
+        <span>STATUS: CONFIDENTIAL</span>
+        <span>PRESS ESC TO CLOSE</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function scaleStage() {
+      const container = document.getElementById('stage-container');
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      const scaleX = windowWidth / 1280;
+      const scaleY = windowHeight / 720;
+      const scale = Math.min(scaleX, scaleY) * 0.94; 
+      
+      container.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', scaleStage);
+    window.addEventListener('DOMContentLoaded', scaleStage);
+
+    const agents = [
+      {
+        name: "ZHU YUAN // 朱袁",
+        img: "https://media.discordapp.net/attachments/814975469865926699/1561909064680874085/IMG_20261019_220331.jpg?ex=6ad810ab&is=6ad6bf2b&hm=42d45d442d9f972ab824dfc3e59f009bf3fb4a288566e41e9866f03b7d43176d&=&format=webp&width=1280&height=960",
+        desc: "Capitana del Equipo de Investigación Criminal de N.E.P.S. Destaca por su estricto cumplimiento del deber y capacidad táctica en combate."
+      },
+      {
+        name: "QINGYI // 青衣",
+        img: "https://i.postimg.cc/pdssj78C/b.png",
+        desc: "Oficial veterana con amplia experiencia en el terreno. Su calma estratégica complementa perfectamente el liderazgo táctico del equipo."
+      },
+      {
+        name: "SETH LOWELL // 塞斯",
+        img: "https://i.postimg.cc/W3nLDp27/image.png",
+        desc: "Oficial novato apasionado por la justicia. Especialista en defensa y combate cuerpo a cuerpo con escudo cargado de energía."
+      }
+    ];
+
+    /* MENSAJES ROTATIVOS DE DIÁLOGO */
+    const messages = [
+      { sender: "N.E.P.S. SIGNAL", text: "Interceptando frecuencias de radio en el Sector 9...", icon: "fa-satellite-dish" },
+      { sender: "SYSTEM WARNING", text: "Anomalía detectada en los servidores del distrito central.", icon: "fa-triangle-exclamation" },
+      { sender: "MOCKINGBIRD", text: "Transmisión encriptada recibida de agente encubierto.", icon: "fa-lock" },
+      { sender: "TARGET LOCK", text: "Sincronización de perfil completada al 100%.", icon: "fa-crosshairs" }
+    ];
+
+    let currentMsgIndex = 0;
+
+    function renderMessage(slotId, msgObj) {
+      const slot = document.getElementById(slotId);
+      slot.innerHTML = `
+        <div class="flex items-start space-x-2.5">
+          <div class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i class="fa-solid ${msgObj.icon} text-[10px] text-slate-200"></i>
+          </div>
+          <div class="flex-1">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">${msgObj.sender}</div>
+            <div class="text-[11px] text-slate-200 leading-snug font-medium">${msgObj.text}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function initDialogs() {
+      renderMessage('dialog-slot-1', messages[0]);
+      renderMessage('dialog-slot-2', messages[1]);
+      
+      setTimeout(() => document.getElementById('dialog-slot-1').classList.add('visible'), 200);
+      setTimeout(() => document.getElementById('dialog-slot-2').classList.add('visible'), 500);
+
+      setInterval(rotateDialogs, 4000);
+    }
+
+    function rotateDialogs() {
+      currentMsgIndex = (currentMsgIndex + 2) % messages.length;
+      const nextMsgIndex = (currentMsgIndex + 1) % messages.length;
+
+      const slot1 = document.getElementById('dialog-slot-1');
+      const slot2 = document.getElementById('dialog-slot-2');
+
+      slot1.classList.remove('visible');
+      slot2.classList.remove('visible');
+
+      setTimeout(() => {
+        renderMessage('dialog-slot-1', messages[currentMsgIndex]);
+        renderMessage('dialog-slot-2', messages[nextMsgIndex]);
+        
+        slot1.classList.add('visible');
+        setTimeout(() => slot2.classList.add('visible'), 250);
+      }, 600);
+    }
+
+    document.addEventListener('DOMContentLoaded', initDialogs);
+
+    let isOpen = false;
+
+    function playCyberSound(type) {
+      try {
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        const synth = new Tone.Synth().toDestination();
+        if (type === 'open') {
+          synth.triggerAttackRelease("C5", "8n");
+          setTimeout(() => synth.triggerAttackRelease("G5", "8n"), 150);
+          setTimeout(() => synth.triggerAttackRelease("C6", "4n"), 300);
+        } else if (type === 'click') {
+          synth.triggerAttackRelease("E5", "16n");
+        } else if (type === 'close') {
+          synth.triggerAttackRelease("G4", "8n");
+          setTimeout(() => synth.triggerAttackRelease("C4", "8n"), 150);
+        }
+      } catch (e) {}
+    }
+
+    function toggleHUD() {
+      isOpen = !isOpen;
+      
+      const cards = [
+        document.getElementById('card-1'),
+        document.getElementById('card-2'),
+        document.getElementById('card-3'),
+        document.getElementById('card-gray')
+      ];
+      const subtitle = document.getElementById('subtitle');
+      const coreBtn = document.getElementById('core-btn');
+      const coreStatus = document.getElementById('core-status');
+
+      if (isOpen) {
+        playCyberSound('open');
+        coreBtn.classList.add('active');
+        coreStatus.innerText = '[DECRYPTED]';
+        coreStatus.classList.add('text-slate-300');
+
+        cards.forEach((card, index) => {
+          setTimeout(() => {
+            card.classList.remove('card-hidden');
+          }, index * 180);
+        });
+
+        setTimeout(() => {
+          subtitle.classList.remove('opacity-0');
+        }, 600);
+
+      } else {
+        playCyberSound('close');
+        coreBtn.classList.remove('active');
+        coreStatus.innerText = '[CLICK TO OPEN]';
+        coreStatus.classList.remove('text-slate-300');
+
+        subtitle.classList.add('opacity-0');
+        cards.forEach((card) => {
+          card.classList.add('card-hidden');
+        });
+      }
+    }
+
+    function openProfile(index) {
+      playCyberSound('click');
+      const agent = agents[index];
+      document.getElementById('modal-title').innerText = agent.name;
+      document.getElementById('modal-img').src = agent.img;
+      document.getElementById('modal-desc').innerText = agent.desc;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (e) e.stopPropagation();
+      playCyberSound('close');
+      document.getElementById('modal').classList.remove('open');
+    }
+
+    function playVoiceLog() {
+      playCyberSound('click');
+      const synth = new Tone.PolySynth().toDestination();
+      synth.triggerAttackRelease(["C4", "E4", "G4"], "8n");
+      
+      const toast = document.getElementById('toast-notification');
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
