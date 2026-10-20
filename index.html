@@ -54,6 +54,7 @@
       overflow: visible;
       transform-origin: center center;
       flex-shrink: 0;
+      transition: transform 0.2s ease-out;
     }
 
     .topo-bg {
@@ -213,11 +214,12 @@
       z-index: 35;
       transition: opacity 1.2s ease, transform 1.2s ease;
       white-space: nowrap;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* VENTANAS INTERNAS VISION OS (GLASSMORPHISM) */
-    
-    /* 1. DIÁLOGOS ROTATIVOS */
     #dialog-container {
       position: absolute;
       top: 50px;
@@ -251,7 +253,7 @@
       transform: translateY(0) scale(1);
     }
 
-    /* 2. VENTANA EMERGENTE PERFIL (MODAL COMPACTA VISION OS) */
+    /* VENTANA EMERGENTE PERFIL (MODAL COMPACTA VISION OS) */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -325,24 +327,35 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* AJUSTES RESPONSIVOS PARA MOVILES */
-    @media (max-width: 768px) {
-      #dialog-container {
-        top: 20px;
-        right: 20px;
-        width: 270px;
-      }
-      .modal-box {
-        border-radius: 24px;
-        padding: 16px;
-      }
-      .subtitle-bar {
-        font-size: 0.75rem;
-        padding: 4px 16px;
-        max-width: 90%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    /* REORDENAMIENTO EXCLUSIVO MÓVIL EN PANTALLAS VERTICALES */
+    body.is-mobile-portrait #card-1 {
+      top: 100px !important;
+      left: 80px !important;
+      width: 250px !important;
+      height: 140px !important;
+    }
+    body.is-mobile-portrait #card-2 {
+      top: 480px !important;
+      left: 80px !important;
+      width: 260px !important;
+      height: 150px !important;
+    }
+    body.is-mobile-portrait #card-3 {
+      top: 480px !important;
+      left: 930px !important;
+      width: 260px !important;
+      height: 150px !important;
+    }
+    body.is-mobile-portrait #card-gray {
+      top: 100px !important;
+      left: 1050px !important;
+      width: 130px !important;
+      height: 130px !important;
+    }
+    body.is-mobile-portrait #dialog-container {
+      top: 15px !important;
+      right: 20px !important;
+      width: 320px !important;
     }
   </style>
 </head>
@@ -528,17 +541,24 @@
   </div>
 
   <script>
-    // Escalado automático responsivo que calcula la proporción ideal para cualquier pantalla móvil o de escritorio
     function scaleStage() {
       const container = document.getElementById('stage-container');
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       
+      const isPortrait = windowHeight > windowWidth;
+      
+      if (isPortrait && windowWidth <= 768) {
+        document.body.classList.add('is-mobile-portrait');
+      } else {
+        document.body.classList.remove('is-mobile-portrait');
+      }
+
       const scaleX = windowWidth / 1280;
       const scaleY = windowHeight / 720;
       
-      // Mantiene la proporción ajustando según el margen disponible
-      const scale = Math.min(scaleX, scaleY) * 0.95; 
+      // Ajuste para garantizar que la pantalla completa de 1280x720 encaje sin recortes
+      const scale = Math.min(scaleX, scaleY) * 0.96; 
       
       container.style.transform = `scale(${scale})`;
     }
