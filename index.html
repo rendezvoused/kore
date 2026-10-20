@@ -25,7 +25,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* FONDO Y GRILLA CYBERPUNK ORIGINAL (PC Y ESCRITORIO) */
+    /* FONDO Y GRILLA CYBERPUNK ORIGINAL */
     html, body {
       background-color: #08090c;
       color: #e2e8f0;
@@ -78,7 +78,7 @@
       letter-spacing: 5px;
     }
 
-    /* TARJETAS EXTERNAS EN PC: ESTILO ORIGINAL intacto */
+    /* TARJETAS EXTERNAS: ESTILO CYBERPUNK ORIGINAL */
     .tech-card {
       position: absolute;
       border: 2px solid var(--light-gray);
@@ -90,7 +90,8 @@
         transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
         opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.4s ease,
-        border-color 0.4s ease;
+        border-color 0.4s ease,
+        top 0.4s ease, left 0.4s ease, width 0.4s ease, height 0.4s ease;
       will-change: transform, opacity;
     }
 
@@ -324,58 +325,84 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* REORDENAMIENTO Y REACOMODO EXCLUSIVO PARA MÓVILES (PANTALLA VERTICAL) */
-    body.is-mobile-portrait #target-info-group {
-      top: 140px !important;
-      left: 40px !important;
+    /* REORDENAMIENTO Y ESCALADO EXCLUSIVO PARA MÓVIL EN PORTRAIT (VERTICAL) */
+    body.is-mobile-portrait #stage-container {
+      width: 100vw !important;
+      height: 100vh !important;
+      transform: none !important;
     }
 
     body.is-mobile-portrait #card-1 {
-      top: 220px !important;
-      left: 40px !important;
-      width: 580px !important;
-      height: 200px !important;
+      top: 170px !important;
+      left: 15px !important;
+      width: 170px !important;
+      height: 130px !important;
+      --start-x: -100px;
+      --start-y: 100px;
     }
 
     body.is-mobile-portrait #card-2 {
-      top: 440px !important;
-      left: 40px !important;
-      width: 580px !important;
-      height: 200px !important;
+      top: 480px !important;
+      left: 15px !important;
+      width: 175px !important;
+      height: 140px !important;
+      --start-x: -100px;
+      --start-y: -100px;
     }
 
     body.is-mobile-portrait #card-3 {
-      top: 220px !important;
-      left: 660px !important;
-      width: 580px !important;
-      height: 200px !important;
+      top: 480px !important;
+      right: 15px !important;
+      left: auto !important;
+      width: 175px !important;
+      height: 140px !important;
+      --start-x: 100px;
+      --start-y: -100px;
     }
 
     body.is-mobile-portrait #card-gray {
-      top: 440px !important;
-      left: 660px !important;
-      width: 580px !important;
-      height: 200px !important;
+      top: 170px !important;
+      right: 15px !important;
+      left: auto !important;
+      width: 110px !important;
+      height: 110px !important;
+      --start-x: 100px;
+      --start-y: 100px;
     }
 
-    body.is-mobile-portrait #core-btn {
-      top: 360px !important;
-      left: 640px !important;
+    body.is-mobile-portrait .core-trigger {
+      top: 50% !important;
+      left: 50% !important;
+      width: 130px !important;
+      height: 130px !important;
+    }
+
+    body.is-mobile-portrait svg {
+      display: none;
+    }
+
+    body.is-mobile-portrait .target-header {
+      top: 60px !important;
+      left: 15px !important;
+    }
+
+    body.is-mobile-portrait .target-header .text-4xl {
+      font-size: 2.8rem !important;
     }
 
     body.is-mobile-portrait #dialog-container {
       top: 15px !important;
-      right: 30px !important;
-      width: 480px !important;
+      right: 15px !important;
+      width: 240px !important;
     }
 
     body.is-mobile-portrait .subtitle-bar {
+      bottom: 20px !important;
+      font-size: 0.7rem !important;
+      padding: 6px 14px !important;
       white-space: normal !important;
-      text-align: center;
-      width: 92% !important;
-      bottom: 15px !important;
-      font-size: 0.85rem !important;
-      padding: 8px 16px !important;
+      text-align: center !important;
+      width: 90% !important;
     }
   </style>
 </head>
@@ -403,27 +430,22 @@
     <div class="bg-watermark" style="top: 10px; right: 40px; font-size: 10rem;">HEADACHE</div>
 
     <!-- Encabezado N.E.P.S. -->
-    <div class="absolute left-10 top-12 flex items-center space-x-3 opacity-80 pointer-events-none">
+    <div class="absolute left-10 top-8 flex items-center space-x-3 opacity-80 pointer-events-none">
       <span class="text-xs tracking-widest text-slate-300 font-bold">// SYSTEM: ACTIVE</span>
     </div>
 
-    <!-- TARGET INFO -->
-    <div id="target-info-group" class="absolute left-10 top-44 pointer-events-none">
+    <div class="target-header absolute left-10 top-36 pointer-events-none z-10">
       <div class="text-xs text-gray-500 tracking-widest">// TARGET ID ///</div>
       <div class="font-bold text-4xl text-white tracking-wider" style="font-family: 'Teko', sans-serif;">SCAR.</div>
       <div class="text-xs text-slate-300 tracking-widest -mt-1">CRIMINAL INVESTIGATION</div>
-      <div class="mt-4 border-l-2 border-slate-300 pl-2 text-xs text-gray-400 max-w-[150px]">
-        PUBLIC SECURITY DATABASE / DECRYPTION MODE
+      <div class="mt-2 border-l-2 border-slate-300 pl-2 text-[10px] text-gray-400 max-w-[140px]">
+        PUBLIC SECURITY DATABASE
       </div>
     </div>
 
-    <div class="absolute top-4 left-6 text-xs text-gray-400 flex items-center space-x-2">
+    <div class="absolute top-3 left-4 text-xs text-gray-400 flex items-center space-x-2">
       <span class="font-bold text-white text-sm">头痛</span>
-      <span class="text-slate-300 text-lg">headache</span>
-    </div>
-    <div class="absolute top-4 right-6 text-xs text-gray-400 flex items-center space-x-2">
-      <span class="font-bold text-white text-sm">头痛</span>
-      <span class="text-slate-300 text-lg">headache</span>
+      <span class="text-slate-300 text-base">headache</span>
     </div>
 
     <!-- DIÁLOGOS FLOTANTES INTERNOS VISION OS (PARTE SUPERIOR DERECHA) -->
@@ -571,15 +593,12 @@
       
       if (isPortrait) {
         document.body.classList.add('is-mobile-portrait');
-        // En celulares verticales se calcula la escala basada en el ancho para que no se vea alejado
-        const scale = (windowWidth / 1280) * 0.98;
-        container.style.transform = `scale(${scale})`;
+        container.style.transform = 'none';
       } else {
         document.body.classList.remove('is-mobile-portrait');
-        // En computadoras y orientación horizontal se mantiene la escala exacta original
         const scaleX = windowWidth / 1280;
         const scaleY = windowHeight / 720;
-        const scale = Math.min(scaleX, scaleY) * 0.96; 
+        const scale = Math.min(scaleX, scaleY) * 0.95; 
         container.style.transform = `scale(${scale})`;
       }
     }
